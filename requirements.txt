@@ -1,0 +1,3 @@
+black
+feedparser
+Flask
