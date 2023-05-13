@@ -2,11 +2,12 @@ from typing import Any
 from flask import Flask, Response, send_from_directory
 from werkzeug.utils import secure_filename
 import requests
-import xml.etree.ElementTree as ET
 
 
 app: Flask = Flask(__name__)
 
+
+import re
 
 @app.route("/<path:rss_url>")
 def rewrite_rss(rss_url: str) -> Response:
@@ -14,11 +15,7 @@ def rewrite_rss(rss_url: str) -> Response:
     Given an rss url, rewrite the urls to pipe them through archive.md.
     """
     rss_feed = requests.get(rss_url)
-    root = ET.fromstring(rss_feed.content)
-    for link in root.iter('link'):
-        link.text = replace_link(link.text)
-    modified_xml = ET.tostring(root, encoding='unicode')
-    modified_xml = f'<?xml version="1.0" encoding="UTF-8"?>{modified_xml}'
+    modified_xml = re.sub(r'<link>(.*?)</link>', lambda match: f'<link>{replace_link(match.group(1))}</link>', rss_feed.text)
     return Response(modified_xml, mimetype="application/xml")
 
 
