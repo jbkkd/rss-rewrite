@@ -8,7 +8,6 @@ import xml.etree.ElementTree as ET
 app: Flask = Flask(__name__)
 
 
-
 @app.route("/<path:rss_url>")
 def rewrite_rss(rss_url: str) -> Response:
     """
@@ -19,6 +18,7 @@ def rewrite_rss(rss_url: str) -> Response:
     for link in root.iter('link'):
         link.text = replace_link(link.text)
     modified_xml = ET.tostring(root, encoding='unicode')
+    modified_xml = f'<?xml version="1.0" encoding="UTF-8"?>{modified_xml}'
     return Response(modified_xml, mimetype="application/xml")
 
 
