@@ -1,22 +1,27 @@
 from typing import Any
-import feedparser
-from flask import Flask, send_from_directory
+import json
+from dicttoxml import dicttoxml
+from flask import Flask, Response, send_from_directory
 from werkzeug.utils import secure_filename
+import requests
 
 
 app: Flask = Flask(__name__)
 
 
+import xml.etree.ElementTree as ET
+
 @app.route("/<path:rss_url>")
-def rewrite_rss(rss_url: str) -> str:
+def rewrite_rss(rss_url: str) -> Response:
     """
     Given an rss url, rewrite the urls to pipe them through archive.md.
     """
-    parsed = feedparser.parse(rss_url)
-    for entry in parsed.entries:
-        print(entry.link)
-        entry.link = replace_link(entry.link)
-    return str(parsed)
+    rss_feed = requests.get(rss_url)
+    root = ET.fromstring(rss_feed.content)
+    for link in root.iter('link'):
+        link.text = replace_link(link.text)
+    modified_xml = ET.tostring(root, encoding='unicode')
+    return Response(modified_xml, mimetype="application/xml")
 
 
 @app.route("/rail/<path:filename>")
@@ -30,7 +35,7 @@ def serve_rail(filename: str = "") -> Any:
     return send_from_directory("rail", filename)
 
 
-def replace_link(link: str) -> str:
+def replace_link(link: str | None) -> str:
     """
     Given a link, replace it with the archive.md version of it.
     Example:
@@ -38,7 +43,10 @@ def replace_link(link: str) -> str:
     becomes
     https://archive.ph/?run=1&url=https://example.com/content
     """
+    if not link:
+        return ""
     return f"https://archive.ph/?run=1&url={link}"
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
