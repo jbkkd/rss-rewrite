@@ -2,6 +2,7 @@ from typing import Any
 from flask import Flask, Response, send_from_directory
 from werkzeug.utils import secure_filename
 import requests
+from urllib.parse import quote
 
 
 app: Flask = Flask(__name__)
@@ -40,7 +41,7 @@ def replace_link(link: str | None) -> str:
     """
     if not link:
         return ""
-    return f"https://archive.ph/?run=1&url={link}"
+    return f"https://archive.ph/?run=1&url={quote(link)}"
 
 
 if __name__ == "__main__":
