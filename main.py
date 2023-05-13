@@ -2,13 +2,12 @@ from typing import Any
 from flask import Flask, Response, send_from_directory
 from werkzeug.utils import secure_filename
 import requests
-from urllib.parse import quote
+from urllib.parse import quote_plus
+import re
 
 
 app: Flask = Flask(__name__)
 
-
-import re
 
 @app.route("/<path:rss_url>")
 def rewrite_rss(rss_url: str) -> Response:
@@ -16,7 +15,7 @@ def rewrite_rss(rss_url: str) -> Response:
     Given an rss url, rewrite the urls to pipe them through archive.md.
     """
     rss_feed = requests.get(rss_url)
-    modified_xml = re.sub(r'<link>(.*?)</link>', lambda match: f'<link>{replace_link(match.group(1))}</link>', rss_feed.text)
+    modified_xml = re.sub(r'<link>(.*?)</link>', lambda match: f'<link><![CDATA[{replace_link(match.group(1))}]]></link>', rss_feed.text)
     return Response(modified_xml, mimetype="application/xml")
 
 
@@ -41,7 +40,7 @@ def replace_link(link: str | None) -> str:
     """
     if not link:
         return ""
-    return f"https://archive.ph/?run=1&url={quote(link)}"
+    return f"https://archive.ph/?run=1&url={quote_plus(link)}"
 
 
 if __name__ == "__main__":
