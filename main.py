@@ -1,15 +1,13 @@
 from typing import Any
-import json
-from dicttoxml import dicttoxml
 from flask import Flask, Response, send_from_directory
 from werkzeug.utils import secure_filename
 import requests
+import xml.etree.ElementTree as ET
 
 
 app: Flask = Flask(__name__)
 
 
-import xml.etree.ElementTree as ET
 
 @app.route("/<path:rss_url>")
 def rewrite_rss(rss_url: str) -> Response:
