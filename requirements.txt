@@ -1,3 +1,4 @@
 black
 feedparser
 Flask
+requests
